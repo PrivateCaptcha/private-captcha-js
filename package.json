@@ -1,0 +1,24 @@
+{
+  "name": "private-captcha-js",
+  "version": "0.0.1",
+  "description": "JS client for server-side usage of Private Captcha API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PrivateCaptcha/private-captcha-js.git"
+  },
+  "keywords": [
+    "anti-bot",
+    "protection",
+    "captcha"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/PrivateCaptcha/private-captcha-js/issues"
+  },
+  "homepage": "https://github.com/PrivateCaptcha/private-captcha-js#readme"
+}
