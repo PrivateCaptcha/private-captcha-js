@@ -1,5 +1,7 @@
 # private-captcha-js
 
+[![NPM Version badge](https://img.shields.io/npm/v/%40private-captcha/private-captcha-js)](https://www.npmjs.com/package/@private-captcha/private-captcha-js) ![CI](https://github.com/PrivateCaptcha/private-captcha-js/actions/workflows/ci.yaml/badge.svg)
+
 JavaScript client for server-side Private Captcha verification.
 
 ## Installation
