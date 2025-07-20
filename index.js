@@ -1,7 +1,8 @@
-import { backOff } from 'exponential-backoff';
 
 /**
  * HTTP Error with status code
+ * @property {number} statusCode - HTTP status code
+ * @property {number|null} retryAfterSeconds - Retry-After header value in seconds
  */
 export class HTTPError extends Error {
     /**
@@ -12,6 +13,7 @@ export class HTTPError extends Error {
         super(message || `HTTP Error ${statusCode}`);
         this.name = 'HTTPError';
         this.statusCode = statusCode;
+        this.retryAfterSeconds = null;
     }
 }
 
@@ -92,6 +94,7 @@ export function verifyCodeToString(code) {
  * @property {string} apiKey - API key created in Private Captcha account settings
  * @property {string} [formField] - Custom form field to read puzzle solution from
  * @property {number} [failedStatusCode] - HTTP status to return for failed verifications
+ * @property {Function} [logger] - Debug logger function (e.g., console.debug)
  */
 
 /**
@@ -131,6 +134,19 @@ export class Client {
         this.apiKey = config.apiKey;
         this.formField = config.formField || DefaultFormField;
         this.failedStatusCode = config.failedStatusCode || 403;
+        this.logger = config.logger;
+    }
+
+    /**
+     * Log debug message if logger is configured
+     * @private
+     * @param {string} message - Log message
+     * @param {...any} args - Additional arguments
+     */
+    _log(message, ...args) {
+        if (this.logger) {
+            this.logger(`[private-captcha] ${message}`, ...args);
+        }
     }
 
     /**
@@ -149,9 +165,29 @@ export class Client {
             body: solution
         });
 
+        this._log('HTTP request finished', { endpoint: this.endpoint, status: response.status });
+
+        let retryAfterSeconds = null;
+        if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After');
+            const rateLimit = response.headers.get('X-RateLimit-Limit');
+            this._log('Rate limited', { retryAfter, rateLimit });
+
+            if (retryAfter) {
+                const value = parseInt(retryAfter, 10);
+                if (!isNaN(value)) {
+                    retryAfterSeconds = value;
+                }
+            }
+        }
+
         // Throw HTTPError for all non-2xx status codes
         if (response.status >= 300) {
-            throw new HTTPError(response.status);
+            const error = new HTTPError(response.status);
+            if (retryAfterSeconds) {
+                error.retryAfterSeconds = retryAfterSeconds;
+            }
+            throw error;
         }
 
         const requestID = response.headers.get('X-Trace-ID') || '';
@@ -172,9 +208,13 @@ export class Client {
      * @returns {Promise<VerifyOutput>} - Verification result
      */
     async verify(input) {
-        let attempts = 5
+        if (!input.solution || input.solution.length === 0) {
+            throw new Error('privatecaptcha: solution is empty');
+        }
+
+        let attempts = 5;
         if (input.attempts > 0) {
-            attempts = input.attempts
+            attempts = input.attempts;
         }
 
         let maxBackoffSeconds = 4;
@@ -182,24 +222,59 @@ export class Client {
             maxBackoffSeconds = input.maxBackoffSeconds;
         }
 
-        return await backOff(
-            () => this._doVerify(input.solution),
-            {
-                numOfAttempts: attempts,
-                maxDelay: maxBackoffSeconds * 1000,
-                startingDelay: 200,
-                timeMultiple: 2,
-                jitter: 'full',
-                retry: (error) => {
-                    // Retry on network errors or specific HTTP status codes
-                    if (error instanceof HTTPError) {
-                        const status = error.statusCode;
-                        return status >= 500 || status === 408 || status === 425 || status === 429;
+        this._log('About to start verifying solution', {
+            maxAttempts: attempts,
+            maxBackoff: maxBackoffSeconds,
+            solutionLength: input.solution.length
+        });
+
+        let currentDelay = 250; // Start with 250ms
+        let lastError;
+
+        for (let attempt = 0; attempt < attempts; attempt++) {
+            if (attempt > 0) {
+                let waitTime = currentDelay;
+
+                if ((lastError instanceof HTTPError) && (lastError.statusCode === 429) && lastError.retryAfterSeconds) {
+                    const retryAfterMs = Math.min(lastError.retryAfterSeconds, maxBackoffSeconds) * 1000;
+                    if (retryAfterMs > currentDelay) {
+                        waitTime = retryAfterMs;
                     }
-                    return true; // Retry on network errors
+                }
+
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+
+                currentDelay = Math.min(currentDelay * 2, maxBackoffSeconds * 1000);
+            }
+
+            try {
+                const result = await this._doVerify(input.solution);
+                this._log('Finished verifying solution', { attempts: attempt + 1, success: true });
+                return result;
+            } catch (error) {
+                lastError = error;
+
+                this._log('Failed to send verify request', {
+                    attempt: attempt + 1,
+                    error: error.message
+                });
+
+                let shouldRetry = true;
+                if (error instanceof HTTPError) {
+                    const status = error.statusCode;
+                    // Don't retry on client errors (except specific ones)
+                    shouldRetry = !((status >= 400) && (status < 500) && (status !== 408) && (status !== 425) && (status !== 429));
+                }
+
+                if (!shouldRetry) {
+                    break;
                 }
             }
-        );
+        }
+
+        this._log('Finished verifying solution', { attempts: attempts, success: false });
+
+        throw lastError;
     }
 
     /**

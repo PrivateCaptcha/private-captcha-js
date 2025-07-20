@@ -23,9 +23,6 @@
     "url": "https://github.com/PrivateCaptcha/private-captcha-js/issues"
   },
   "homepage": "https://github.com/PrivateCaptcha/private-captcha-js#readme",
-  "dependencies": {
-    "exponential-backoff": "^3.1.1"
-  },
   "devDependencies": {
     "eslint": "^9.23.0"
   }
