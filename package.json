@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/PrivateCaptcha/private-captcha-js/issues"
   },
-  "homepage": "https://github.com/PrivateCaptcha/private-captcha-js#readme",
+  "homepage": "https://docs.privatecaptcha.com/docs/integrations/javascript/",
   "devDependencies": {
     "eslint": "^9.23.0"
   }
