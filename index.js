@@ -269,7 +269,7 @@ export class Client {
             attempts = input.attempts;
         }
 
-        let maxBackoffSeconds = 4;
+        let maxBackoffSeconds = 10;
         if (input.maxBackoffSeconds > 0) {
             maxBackoffSeconds = input.maxBackoffSeconds;
         }
