@@ -55,6 +55,8 @@ export function getStatusCode(error) {
 export const GlobalDomain = 'api.privatecaptcha.com';
 export const EUDomain = 'api.eu.privatecaptcha.com';
 export const DefaultFormField = 'private-captcha-solution';
+const version = '0.0.3'
+const userAgent = 'private-captcha-js/' + version;
 
 /**
  * Verify codes
@@ -188,7 +190,8 @@ export class Client {
                 method: 'POST',
                 headers: {
                     'X-Api-Key': this.apiKey,
-                    'Content-Type': 'text/plain'
+                    'Content-Type': 'text/plain',
+                    'User-Agent': userAgent
                 },
                 body: solution,
                 signal: controller.signal
@@ -233,7 +236,7 @@ export class Client {
             };
         } catch (error) {
             clearTimeout(timeoutId);
-            
+
             if (error.name === 'AbortError') {
                 throw new Error(`Request timeout after ${this.timeoutMs}ms`);
             }
