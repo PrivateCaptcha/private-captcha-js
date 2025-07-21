@@ -58,6 +58,16 @@ export const DefaultFormField = 'private-captcha-solution';
 const version = '0.0.3'
 const userAgent = 'private-captcha-js/' + version;
 
+const retriableStatusCodes = [
+    408, // Request Timeout
+    425, // Too Early
+    429, // Too Many Requests
+    500, // Internal Server Error
+    502, // Bad Gateway
+    503, // Service Unavailable
+    504, // Gateway Timeout
+];
+
 /**
  * Verify codes
  */
@@ -304,8 +314,7 @@ export class Client {
                 let shouldRetry = true;
                 if (error instanceof HTTPError) {
                     const status = error.statusCode;
-                    // Don't retry on client errors (except specific ones)
-                    shouldRetry = !((status >= 400) && (status < 500) && (status !== 408) && (status !== 425) && (status !== 429));
+                    shouldRetry = retriableStatusCodes.includes(status);
                 }
 
                 if (!shouldRetry) {
