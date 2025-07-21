@@ -3,7 +3,6 @@
  * HTTP Error with status code
  * @property {number} statusCode - HTTP status code
  * @property {number|null} retryAfterSeconds - Retry-After header value in seconds
- * @property {number} attempt - Number of attempts made during verification
  */
 export class HTTPError extends Error {
     /**
@@ -15,7 +14,6 @@ export class HTTPError extends Error {
         this.name = 'HTTPError';
         this.statusCode = statusCode;
         this.retryAfterSeconds = null;
-        this.attempt = 0;
     }
 }
 
