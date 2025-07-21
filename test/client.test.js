@@ -59,6 +59,7 @@ test('Retry backoff test', async () => {
     const client = createClient({
         apiKey: process.env.PC_API_KEY || 'test-key',
         domain: 'does-not-exist.qwerty12345-asdfjkl.net',
+        timeoutMs: 1000, // 1 second timeout
         logger: console.debug
     });
 

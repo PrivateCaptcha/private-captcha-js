@@ -119,6 +119,7 @@ export function verifyCodeToString(code) {
  * @property {string} [formField] - Custom form field to read puzzle solution from
  * @property {number} [failedStatusCode] - HTTP status to return for failed verifications
  * @property {Function} [logger] - Debug logger function (e.g., console.debug)
+ * @property {number} [timeoutMs] - Request timeout in milliseconds
  */
 
 /**
@@ -158,6 +159,7 @@ export class Client {
         this.apiKey = config.apiKey;
         this.formField = config.formField || DefaultFormField;
         this.failedStatusCode = config.failedStatusCode || 403;
+        this.timeoutMs = config.timeoutMs || 30000; // Default 30 seconds
         this.logger = config.logger;
     }
 
@@ -180,50 +182,65 @@ export class Client {
      * @returns {Promise<VerifyOutput>} - Verification result
      */
     async _doVerify(solution) {
-        const response = await fetch(this.endpoint, {
-            method: 'POST',
-            headers: {
-                'X-Api-Key': this.apiKey,
-                'Content-Type': 'text/plain'
-            },
-            body: solution
-        });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
-        this._log('HTTP request finished', { endpoint: this.endpoint, status: response.status });
+        try {
+            const response = await fetch(this.endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-Api-Key': this.apiKey,
+                    'Content-Type': 'text/plain'
+                },
+                body: solution,
+                signal: controller.signal
+            });
 
-        let retryAfterSeconds = null;
-        if (response.status === 429) {
-            const retryAfter = response.headers.get('Retry-After');
-            const rateLimit = response.headers.get('X-RateLimit-Limit');
-            this._log('Rate limited', { retryAfter, rateLimit });
+            clearTimeout(timeoutId);
 
-            if (retryAfter) {
-                const value = parseInt(retryAfter, 10);
-                if (!isNaN(value)) {
-                    retryAfterSeconds = value;
+            this._log('HTTP request finished', { endpoint: this.endpoint, status: response.status });
+
+            let retryAfterSeconds = null;
+            if (response.status === 429) {
+                const retryAfter = response.headers.get('Retry-After');
+                const rateLimit = response.headers.get('X-RateLimit-Limit');
+                this._log('Rate limited', { retryAfter, rateLimit });
+
+                if (retryAfter) {
+                    const value = parseInt(retryAfter, 10);
+                    if (!isNaN(value)) {
+                        retryAfterSeconds = value;
+                    }
                 }
             }
-        }
 
-        // Throw HTTPError for all non-2xx status codes
-        if (response.status >= 300) {
-            const error = new HTTPError(response.status);
-            if (retryAfterSeconds) {
-                error.retryAfterSeconds = retryAfterSeconds;
+            // Throw HTTPError for all non-2xx status codes
+            if (response.status >= 300) {
+                const error = new HTTPError(response.status);
+                if (retryAfterSeconds) {
+                    error.retryAfterSeconds = retryAfterSeconds;
+                }
+                throw error;
+            }
+
+            const requestID = response.headers.get('X-Trace-ID') || '';
+            const data = await response.json();
+
+            return {
+                success: data.success,
+                code: data.code,
+                origin: data.origin,
+                timestamp: data.timestamp,
+                requestID: requestID
+            };
+        } catch (error) {
+            clearTimeout(timeoutId);
+            
+            if (error.name === 'AbortError') {
+                throw new Error(`Request timeout after ${this.timeoutMs}ms`);
             }
             throw error;
         }
-
-        const requestID = response.headers.get('X-Trace-ID') || '';
-        const data = await response.json();
-
-        return {
-            success: data.success,
-            code: data.code,
-            origin: data.origin,
-            timestamp: data.timestamp,
-            requestID: requestID
-        };
     }
 
     /**
