@@ -54,3 +54,25 @@ test('Verify error test', async () => {
     assert.strictEqual(output.success, false);
     assert.strictEqual(output.code, VerifyCode.ParseResponseError);
 });
+
+test('Retry backoff test', async () => {
+    const client = createClient({
+        apiKey: process.env.PC_API_KEY || 'test-key',
+        domain: 'does-not-exist.qwerty12345-asdfjkl.net',
+        logger: console.debug
+    });
+
+    const input = {
+        solution: 'asdf',
+        maxBackoffSeconds: 1,
+        attempts: 4
+    };
+
+    try {
+        await client.verify(input);
+        assert.fail('Should have thrown an error for invalid domain');
+    } catch (error) {
+        assert.ok(error, 'Should have an error');
+        assert.strictEqual(error.attempt, input.attempts, 'Should have made all attempts');
+    }
+});
