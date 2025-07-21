@@ -20,6 +20,25 @@ export class HTTPError extends Error {
 }
 
 /**
+ * Verification Error with attempt tracking
+ * @property {Error} originalError - The original error that occurred
+ * @property {number} attempt - Number of attempts made during verification
+ */
+export class VerificationError extends Error {
+    /**
+     * @param {string} message - Error message
+     * @param {Error} originalError - The original error
+     * @param {number} [attempt=0] - Number of attempts made
+     */
+    constructor(message, originalError, attempt = 0) {
+        super(message);
+        this.name = 'VerificationError';
+        this.originalError = originalError;
+        this.attempt = attempt;
+    }
+}
+
+/**
  * Gets the HTTP status code from an error if it's an HTTPError
  * @param {Error} error - The error to check
  * @returns {[number, boolean]} - Tuple of [statusCode, isHTTPError]
@@ -27,6 +46,9 @@ export class HTTPError extends Error {
 export function getStatusCode(error) {
     if (error instanceof HTTPError) {
         return [error.statusCode, true];
+    }
+    if (error instanceof VerificationError && error.originalError instanceof HTTPError) {
+        return [error.originalError.statusCode, true];
     }
     return [0, false];
 }
@@ -276,10 +298,11 @@ export class Client {
 
         this._log('Finished verifying solution', { attempts: attempts, success: false });
 
-        // Set attempt count on the error
-        lastError.attempt = attempts;
-
-        throw lastError;
+        throw new VerificationError(
+            `Verification failed after ${attempts} attempts: ${lastError.message}`,
+            lastError,
+            attempts
+        );
     }
 
     /**

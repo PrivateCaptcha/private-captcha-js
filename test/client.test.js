@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { createClient, VerifyCode } from '../index.js';
+import { createClient, VerifyCode, VerificationError } from '../index.js';
 
 const solutionsCount = 16;
 const solutionLength = 8;
@@ -72,7 +72,8 @@ test('Retry backoff test', async () => {
         await client.verify(input);
         assert.fail('Should have thrown an error for invalid domain');
     } catch (error) {
-        assert.ok(error, 'Should have an error');
+        assert.ok(error instanceof VerificationError, 'Should be a VerificationError');
         assert.strictEqual(error.attempt, input.attempts, 'Should have made all attempts');
+        assert.ok(error.originalError, 'Should have original error');
     }
 });
