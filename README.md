@@ -62,3 +62,23 @@ const client = createClient({
     domain: 'api.privatecaptcha.com'        // Override for EU isolation or for self-hosting
 });
 ```
+
+### Retry configuration
+
+```javascript
+client.verify({
+    solution: 'solution',
+    maxBackoffSeconds: 10,
+    attempts: 10
+});
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues with this Javascript client, please open an issue on GitHub.
+
+For Private Captcha service questions, visit [privatecaptcha.com](https://privatecaptcha.com).
