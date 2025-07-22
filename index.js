@@ -321,7 +321,8 @@ export class Client {
 
                 this._log('Failed to send verify request', {
                     attempt: attempt + 1,
-                    error: error.message
+                    error: error.message,
+                    backoff: currentDelay,
                 });
 
                 let shouldRetry = true;
