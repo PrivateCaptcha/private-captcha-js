@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { createClient, VerifyCode, VerificationError } from '../index.js';
+import { createClient, VerifyCode, VerificationError, DefaultFormField } from '../index.js';
 
 const solutionsCount = 16;
 const solutionLength = 8;
@@ -77,4 +77,72 @@ test('Retry backoff test', async () => {
         assert.strictEqual(error.attempt, input.attempts, 'Should have made all attempts');
         assert.ok(error.originalError, 'Should have original error');
     }
+});
+
+test('Custom form field test', async () => {
+    const puzzle = await fetchTestPuzzle();
+
+    // Create proper payload like other tests
+    const emptySolutionsBytes = new Array(solutionsCount * solutionLength).fill(0);
+    const solutionsStr = Buffer.from(emptySolutionsBytes).toString('base64');
+    const payload = `${solutionsStr}.${puzzle}`;
+
+    const customField = 'my-custom-captcha-field';
+    const client = createClient({
+        apiKey: process.env.PC_API_KEY || 'test-key',
+        formField: customField,
+        logger: console.debug
+    });
+
+    // Test with custom field present
+    const reqWithCustomField = {
+        body: {
+            [customField]: payload
+        }
+    };
+
+    try {
+        const output = await client.verifyRequest(reqWithCustomField);
+        // Should succeed with test property error
+        assert.strictEqual(output.success, true);
+        assert.strictEqual(output.code, VerifyCode.TestPropertyError);
+    } catch (error) {
+        assert.fail('Should not have thrown an error when custom field is present');
+    }
+
+    // Test with custom field missing
+    const reqWithoutCustomField = {
+        body: {
+            [DefaultFormField]: payload // default field, but we expect custom field
+        }
+    };
+
+    try {
+        await client.verifyRequest(reqWithoutCustomField);
+        assert.fail('Should have thrown an error for missing custom field');
+    } catch (error) {
+        assert.ok(error instanceof Error);
+    }
+});
+
+test('Empty API key test', () => {
+    // Test with empty string
+    assert.throws(() => {
+        createClient({ apiKey: '' });
+    }, Error);
+
+    // Test with null
+    assert.throws(() => {
+        createClient({ apiKey: null });
+    }, Error);
+
+    // Test with undefined
+    assert.throws(() => {
+        createClient({ apiKey: undefined });
+    }, Error);
+
+    // Test with missing apiKey property
+    assert.throws(() => {
+        createClient({});
+    }, Error);
 });
