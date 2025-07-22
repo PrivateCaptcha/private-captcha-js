@@ -37,6 +37,19 @@ export class VerificationError extends Error {
 }
 
 /**
+ * Solution Error for missing or empty solutions/form fields
+ */
+export class SolutionError extends Error {
+    /**
+     * @param {string} message - Error message
+     */
+    constructor(message) {
+        super(message);
+        this.name = 'SolutionError';
+    }
+}
+
+/**
  * Gets the HTTP status code from an error if it's an HTTPError
  * @param {Error} error - The error to check
  * @returns {[number, boolean]} - Tuple of [statusCode, isHTTPError]
@@ -261,7 +274,7 @@ export class Client {
      */
     async verify(input) {
         if (!input.solution || input.solution.length === 0) {
-            throw new Error('privatecaptcha: solution is empty');
+            throw new SolutionError('privatecaptcha: solution is empty');
         }
 
         let attempts = 5;
@@ -343,7 +356,7 @@ export class Client {
         if (req.body && req.body[this.formField]) {
             solution = req.body[this.formField];
         } else {
-            throw new Error(`Captcha solution not found in field '${this.formField}'. Ensure body parsing middleware is configured.`);
+            throw new SolutionError(`Captcha solution not found in field '${this.formField}'. Ensure body parsing middleware is configured.`);
         }
 
         return await this.verify({ solution });

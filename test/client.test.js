@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { createClient, VerifyCode, VerificationError, DefaultFormField } from '../index.js';
+import { createClient, VerifyCode, VerificationError, DefaultFormField, SolutionError } from '../index.js';
 
 const solutionsCount = 16;
 const solutionLength = 8;
@@ -121,7 +121,7 @@ test('Custom form field test', async () => {
         await client.verifyRequest(reqWithoutCustomField);
         assert.fail('Should have thrown an error for missing custom field');
     } catch (error) {
-        assert.ok(error instanceof Error);
+        assert.ok(error instanceof SolutionError);
     }
 });
 
