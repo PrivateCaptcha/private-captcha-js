@@ -5,7 +5,13 @@ import { createClient, VerifyCode, VerificationError, DefaultFormField, Solution
 const solutionsCount = 16;
 const solutionLength = 8;
 
+let cachedTestPuzzle = null;
+
 async function fetchTestPuzzle() {
+    if (cachedTestPuzzle !== null) {
+        return cachedTestPuzzle;
+    }
+
     const response = await fetch('https://api.privatecaptcha.com/puzzle?sitekey=aaaaaaaabbbbccccddddeeeeeeeeeeee', {
         headers: {
             'Origin': 'not.empty'
@@ -16,7 +22,8 @@ async function fetchTestPuzzle() {
         throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return await response.text();
+    cachedTestPuzzle = await response.text();
+    return cachedTestPuzzle;
 }
 
 test('Stub puzzle test', async () => {
