@@ -2,15 +2,8 @@ name: Publish js package
 
 on:
   push:
-    branches:
-    - main
-    paths:
-    - '**/*.js'
-    - 'package.json'
-    - '.github/workflows/package.yaml'
-    - '!node_modules/**'
-  #  tags:
-  #    - '*'
+    tags:
+      - 'v*'
 
 jobs:
   check:
