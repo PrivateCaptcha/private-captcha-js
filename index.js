@@ -282,7 +282,7 @@ export class Client {
             attempts = input.attempts;
         }
 
-        let maxBackoffSeconds = 10;
+        let maxBackoffSeconds = 20;
         if (input.maxBackoffSeconds > 0) {
             maxBackoffSeconds = input.maxBackoffSeconds;
         }
@@ -293,7 +293,7 @@ export class Client {
             solutionLength: input.solution.length
         });
 
-        let currentDelay = 250; // Start with 250ms
+        let currentDelay = 500;
         let lastError;
 
         for (let attempt = 0; attempt < attempts; attempt++) {
