@@ -68,7 +68,7 @@ export function getStatusCode(error) {
 export const GlobalDomain = 'api.privatecaptcha.com';
 export const EUDomain = 'api.eu.privatecaptcha.com';
 export const DefaultFormField = 'private-captcha-solution';
-const version = '0.0.6'
+const version = '0.0.7'
 const userAgent = 'private-captcha-js/' + version;
 
 const retriableStatusCodes = [
@@ -317,8 +317,6 @@ export class Client {
                 this._log('Finished verifying solution', { attempts: attempt + 1, success: true });
                 return result;
             } catch (error) {
-                lastError = error;
-
                 this._log('Failed to send verify request', {
                     attempt: attempt + 1,
                     error: error.message,
@@ -331,9 +329,12 @@ export class Client {
                     shouldRetry = retriableStatusCodes.includes(status);
                 }
 
-                if (!shouldRetry) {
-                    break;
+                if (shouldRetry) {
+                    lastError = error;
+                    continue;
                 }
+
+                throw error;
             }
         }
 

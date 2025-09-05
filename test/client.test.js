@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { createClient, VerifyCode, VerificationError, DefaultFormField, SolutionError } from '../index.js';
+import { createClient, VerifyCode, VerificationError, DefaultFormField, SolutionError, HTTPError } from '../index.js';
 
 const solutionsCount = 16;
 const solutionLength = 8;
@@ -56,10 +56,13 @@ test('Verify error test', async () => {
     const solutionsStr = Buffer.from(emptySolutionsBytes).toString('base64');
     const payload = `${solutionsStr}.${puzzle}`;
 
-    const output = await client.verify({ solution: payload });
-
-    assert.strictEqual(output.success, false);
-    assert.strictEqual(output.code, VerifyCode.ParseResponseError);
+    try {
+        await client.verify({ solution: payload });
+        assert.fail('Should have thrown an error for HTTP 400');
+    } catch (error) {
+        assert.ok(error instanceof HTTPError, 'Should be a HTTPError');
+        assert.strictEqual(error.statusCode, 400, 'Should be Bad Request error');
+    }
 });
 
 test('Retry backoff test', async () => {
