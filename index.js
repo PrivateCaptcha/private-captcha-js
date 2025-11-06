@@ -8,12 +8,14 @@ export class HTTPError extends Error {
     /**
      * @param {number} statusCode - HTTP status code
      * @param {string} [message] - Error message
+     * @param {string} [traceID=''] - Server-side request ID
      */
-    constructor(statusCode, message) {
+    constructor(statusCode, message, traceID = '') {
         super(message || `HTTP Error ${statusCode}`);
         this.name = 'HTTPError';
         this.statusCode = statusCode;
         this.retryAfterSeconds = null;
+        this.traceID = traceID;
     }
 }
 
@@ -27,12 +29,14 @@ export class VerificationError extends Error {
      * @param {string} message - Error message
      * @param {Error} originalError - The original error
      * @param {number} [attempt=0] - Number of attempts made
+     * @param {string} [traceID=''] - Server-side request ID
      */
-    constructor(message, originalError, attempt = 0) {
+    constructor(message, originalError, attempt = 0, traceID = '') {
         super(message);
         this.name = 'VerificationError';
         this.originalError = originalError;
         this.attempt = attempt;
+        this.traceID = traceID;
     }
 }
 
@@ -158,7 +162,7 @@ export function verifyCodeToString(code) {
  * @property {number} code - Verification result code
  * @property {string} [origin] - Origin of the request
  * @property {string} [timestamp] - Timestamp of verification
- * @property {string} requestID - Request ID for tracing
+ * @property {string} traceID - Request ID for tracing
  */
 
 /**
@@ -222,7 +226,9 @@ export class Client {
 
             clearTimeout(timeoutId);
 
-            this._log('HTTP request finished', { endpoint: this.endpoint, status: response.status });
+            const traceID = response.headers.get('X-Trace-ID') || '';
+
+            this._log('HTTP request finished', { endpoint: this.endpoint, status: response.status, traceID: traceID });
 
             let retryAfterSeconds = null;
             if (response.status === 429) {
@@ -240,14 +246,13 @@ export class Client {
 
             // Throw HTTPError for all non-2xx status codes
             if (response.status >= 300) {
-                const error = new HTTPError(response.status);
+                const error = new HTTPError(response.status, '', traceID);
                 if (retryAfterSeconds) {
                     error.retryAfterSeconds = retryAfterSeconds;
                 }
                 throw error;
             }
 
-            const requestID = response.headers.get('X-Trace-ID') || '';
             const data = await response.json();
 
             return {
@@ -255,7 +260,7 @@ export class Client {
                 code: data.code,
                 origin: data.origin,
                 timestamp: data.timestamp,
-                requestID: requestID
+                traceID: traceID
             };
         } catch (error) {
             clearTimeout(timeoutId);
@@ -295,6 +300,7 @@ export class Client {
 
         let currentDelay = 500;
         let lastError;
+        let traceID = '';
 
         for (let attempt = 0; attempt < attempts; attempt++) {
             if (attempt > 0) {
@@ -327,6 +333,7 @@ export class Client {
                 if (error instanceof HTTPError) {
                     const status = error.statusCode;
                     shouldRetry = retriableStatusCodes.includes(status);
+                    traceID = error.traceID;
                 }
 
                 if (shouldRetry) {
@@ -343,7 +350,8 @@ export class Client {
         throw new VerificationError(
             `Verification failed after ${attempts} attempts: ${lastError.message}`,
             lastError,
-            attempts
+            attempts,
+            traceID,
         );
     }
 
