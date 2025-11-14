@@ -38,6 +38,16 @@ jobs:
     - name: Install NPM dependencies
       run: npm ci
 
+    - name: Build type definitions
+      run: npm run build:types
+
+    - name: Check for stale type file
+      run: |
+        if ! git diff --exit-code index.d.ts; then
+          echo "::error::index.d.ts is out of sync. Run 'npm run build:types' and commit the changes."
+          exit 1
+        fi
+
     - name: Run tests
       run: npm test
       env:

@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test",
-    "lint": "eslint **/*.js"
+    "lint": "eslint **/*.js",
+    "build:types": "tsc --project tsconfig.build.json"
   },
   "repository": {
     "type": "git",
@@ -24,6 +25,7 @@
   },
   "homepage": "https://docs.privatecaptcha.com/docs/integrations/javascript/",
   "devDependencies": {
-    "eslint": "^9.23.0"
+    "eslint": "^9.23.0",
+    "typescript": "^5.4.5"
   }
 }
