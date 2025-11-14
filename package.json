@@ -1,9 +1,10 @@
 {
   "name": "@private-captcha/private-captcha-js",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "JS client for server-side usage of Private Captcha API",
   "type": "module",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "test": "node --test",
     "lint": "eslint **/*.js",
