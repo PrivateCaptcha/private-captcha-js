@@ -20,7 +20,7 @@ import { createClient } from 'private-captcha-js';
 const client = createClient({ apiKey: 'your-api-key' });
 
 const result = await client.verify({ solution: 'captcha-solution-from-client' });
-if (result.success) {
+if (result.ok()) {
     console.log('Captcha verified!');
 }
 ```

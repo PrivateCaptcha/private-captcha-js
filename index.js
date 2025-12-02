@@ -405,7 +405,7 @@ export class Client {
             try {
                 const output = await this.verifyRequest(req);
 
-                if (!output.success) {
+                if (!output.ok()) {
                     return res.status(this.failedStatusCode).send(`Captcha verification failed: ${verifyCodeToString(output.code)}`);
                 }
 

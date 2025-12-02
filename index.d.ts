@@ -58,6 +58,34 @@ export class SolutionError extends Error {
      */
     constructor(message: string);
 }
+/**
+ * Verification output class
+ * @property {boolean} success - Whether verification succeeded
+ * @property {number} code - Verification result code
+ * @property {string} [origin] - Origin of the request
+ * @property {string} [timestamp] - Timestamp of verification
+ * @property {string} traceID - Request ID for tracing
+ */
+export class VerifyOutput {
+    /**
+     * @param {boolean} success - Whether verification succeeded
+     * @param {number} code - Verification result code
+     * @param {string} [origin] - Origin of the request
+     * @param {string} [timestamp] - Timestamp of verification
+     * @param {string} [traceID=''] - Request ID for tracing
+     */
+    constructor(success: boolean, code: number, origin?: string, timestamp?: string, traceID?: string);
+    success: boolean;
+    code: number;
+    origin: string;
+    timestamp: string;
+    traceID: string;
+    /**
+     * Returns true if verification succeeded with no errors
+     * @returns {boolean} - True if success is true and code is VerifyNoError
+     */
+    ok(): boolean;
+}
 export const GlobalDomain: "api.privatecaptcha.com";
 export const EUDomain: "api.eu.privatecaptcha.com";
 export const DefaultFormField: "private-captcha-solution";
@@ -89,14 +117,6 @@ export namespace VerifyCode {
  * @property {string} solution - The captcha solution
  * @property {number} [maxBackoffSeconds] - Maximum backoff time in seconds
  * @property {number} [attempts] - Number of retry attempts
- */
-/**
- * @typedef {Object} VerifyOutput
- * @property {boolean} success - Whether verification succeeded
- * @property {number} code - Verification result code
- * @property {string} [origin] - Origin of the request
- * @property {string} [timestamp] - Timestamp of verification
- * @property {string} traceID - Request ID for tracing
  */
 /**
  * Private Captcha API Client
@@ -183,26 +203,4 @@ export type VerifyInput = {
      * - Number of retry attempts
      */
     attempts?: number;
-};
-export type VerifyOutput = {
-    /**
-     * - Whether verification succeeded
-     */
-    success: boolean;
-    /**
-     * - Verification result code
-     */
-    code: number;
-    /**
-     * - Origin of the request
-     */
-    origin?: string;
-    /**
-     * - Timestamp of verification
-     */
-    timestamp?: string;
-    /**
-     * - Request ID for tracing
-     */
-    traceID: string;
 };
