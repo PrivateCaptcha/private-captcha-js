@@ -105,7 +105,7 @@ export function getStatusCode(error) {
 export const GlobalDomain = 'api.privatecaptcha.com';
 export const EUDomain = 'api.eu.privatecaptcha.com';
 export const DefaultFormField = 'private-captcha-solution';
-const version = '0.0.7'
+const version = '0.0.11'
 const userAgent = 'private-captcha-js/' + version;
 
 const retriableStatusCodes = [
