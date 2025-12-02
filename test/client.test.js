@@ -40,6 +40,7 @@ test('Stub puzzle test', async () => {
 
     const output = await client.verify({ solution: payload });
 
+    assert.strictEqual(output.ok(), false);
     assert.strictEqual(output.success, true);
     assert.strictEqual(output.code, VerifyCode.TestPropertyError);
 });
@@ -114,6 +115,7 @@ test('Custom form field test', async () => {
     try {
         const output = await client.verifyRequest(reqWithCustomField);
         // Should succeed with test property error
+        assert.strictEqual(output.ok(), false);
         assert.strictEqual(output.success, true);
         assert.strictEqual(output.code, VerifyCode.TestPropertyError);
     } catch (error) {

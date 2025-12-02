@@ -54,6 +54,39 @@ export class SolutionError extends Error {
 }
 
 /**
+ * Verification output class
+ * @property {boolean} success - Whether verification succeeded
+ * @property {number} code - Verification result code
+ * @property {string} [origin] - Origin of the request
+ * @property {string} [timestamp] - Timestamp of verification
+ * @property {string} traceID - Request ID for tracing
+ */
+export class VerifyOutput {
+    /**
+     * @param {boolean} success - Whether verification succeeded
+     * @param {number} code - Verification result code
+     * @param {string} [origin] - Origin of the request
+     * @param {string} [timestamp] - Timestamp of verification
+     * @param {string} [traceID=''] - Request ID for tracing
+     */
+    constructor(success, code, origin, timestamp, traceID = '') {
+        this.success = success;
+        this.code = code;
+        this.origin = origin;
+        this.timestamp = timestamp;
+        this.traceID = traceID;
+    }
+
+    /**
+     * Returns true if verification succeeded with no errors
+     * @returns {boolean} - True if success is true and code is VerifyNoError
+     */
+    ok() {
+        return this.success && this.code === VerifyCode.VerifyNoError;
+    }
+}
+
+/**
  * Gets the HTTP status code from an error if it's an HTTPError
  * @param {Error} error - The error to check
  * @returns {[number, boolean]} - Tuple of [statusCode, isHTTPError]
@@ -157,15 +190,6 @@ export function verifyCodeToString(code) {
  */
 
 /**
- * @typedef {Object} VerifyOutput
- * @property {boolean} success - Whether verification succeeded
- * @property {number} code - Verification result code
- * @property {string} [origin] - Origin of the request
- * @property {string} [timestamp] - Timestamp of verification
- * @property {string} traceID - Request ID for tracing
- */
-
-/**
  * Private Captcha API Client
  */
 export class Client {
@@ -255,13 +279,13 @@ export class Client {
 
             const data = await response.json();
 
-            return {
-                success: data.success,
-                code: data.code,
-                origin: data.origin,
-                timestamp: data.timestamp,
-                traceID: traceID
-            };
+            return new VerifyOutput(
+                data.success,
+                data.code,
+                data.origin,
+                data.timestamp,
+                traceID
+            );
         } catch (error) {
             clearTimeout(timeoutId);
 
