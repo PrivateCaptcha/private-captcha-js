@@ -187,6 +187,7 @@ export function verifyCodeToString(code) {
  * @property {string} solution - The captcha solution
  * @property {number} [maxBackoffSeconds] - Maximum backoff time in seconds
  * @property {number} [attempts] - Number of retry attempts
+ * @property {string} [sitekey] - Optional sitekey to include in verification request
  */
 
 /**
@@ -230,20 +231,27 @@ export class Client {
      * Internal method to perform verification request
      * @private
      * @param {string} solution - The captcha solution
+     * @param {string} [sitekey] - Optional sitekey
      * @returns {Promise<VerifyOutput>} - Verification result
      */
-    async _doVerify(solution) {
+    async _doVerify(solution, sitekey) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 
         try {
+            const headers = {
+                'X-Api-Key': this.apiKey,
+                'Content-Type': 'text/plain',
+                'User-Agent': userAgent
+            };
+
+            if (sitekey && sitekey.length > 0) {
+                headers['X-PC-Sitekey'] = sitekey;
+            }
+
             const response = await fetch(this.endpoint, {
                 method: 'POST',
-                headers: {
-                    'X-Api-Key': this.apiKey,
-                    'Content-Type': 'text/plain',
-                    'User-Agent': userAgent
-                },
+                headers: headers,
                 body: solution,
                 signal: controller.signal
             });
@@ -343,7 +351,7 @@ export class Client {
             }
 
             try {
-                const result = await this._doVerify(input.solution);
+                const result = await this._doVerify(input.solution, input.sitekey);
                 this._log('Finished verifying solution', { attempts: attempt + 1, success: true });
                 return result;
             } catch (error) {
