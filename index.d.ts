@@ -117,6 +117,7 @@ export namespace VerifyCode {
  * @property {string} solution - The captcha solution
  * @property {number} [maxBackoffSeconds] - Maximum backoff time in seconds
  * @property {number} [attempts] - Number of retry attempts
+ * @property {string} [sitekey] - Optional sitekey to include in verification request
  */
 /**
  * Private Captcha API Client
@@ -143,6 +144,7 @@ export class Client {
      * Internal method to perform verification request
      * @private
      * @param {string} solution - The captcha solution
+     * @param {string} [sitekey] - Optional sitekey
      * @returns {Promise<VerifyOutput>} - Verification result
      */
     private _doVerify;
@@ -203,4 +205,8 @@ export type VerifyInput = {
      * - Number of retry attempts
      */
     attempts?: number;
+    /**
+     * - Optional sitekey to include in verification request
+     */
+    sitekey?: string;
 };
