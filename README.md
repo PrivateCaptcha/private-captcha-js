@@ -4,74 +4,26 @@
 
 JavaScript client for server-side Private Captcha verification.
 
-## Installation
+<mark>Please check the [official documentation](https://docs.privatecaptcha.com/docs/integrations/javascript/) for the in-depth and up-to-date information.</mark>
 
-```bash
-npm install private-captcha-js
-```
+## Quick Start
 
-## Usage
-
-### Basic Verification
-
-```javascript
-import { createClient } from 'private-captcha-js';
-
-const client = createClient({ apiKey: 'your-api-key' });
-
-const result = await client.verify({ solution: 'captcha-solution-from-client' });
-if (result.ok()) {
-    console.log('Captcha verified!');
-}
-```
-
-### Express.js Middleware
-
-```javascript
-import express from 'express';
-import { createClient } from 'private-captcha-js';
-
-const app = express();
-app.use(express.urlencoded({ extended: true })); // Required
-
-const client = createClient({ apiKey: 'your-api-key' });
-
-// Protect route with middleware
-app.post('/submit', client.middleware(), (req, res) => {
-    res.send('Form submitted successfully!');
-});
-
-// Or verify manually
-app.post('/verify', async (req, res) => {
-    try {
-        const result = await client.verifyRequest(req);
-        res.json({ success: result.success });
-    } catch (error) {
-        res.status(403).json({ error: error.message });
+- Install `private-captcha-js` npm package
+    ```bash
+    npm install private-captcha-js
+    ```
+- Instantiate the client and use `verify()` method    
+    ```javascript
+    import { createClient } from 'private-captcha-js';
+    
+    const client = createClient({ apiKey: 'your-api-key' });
+    
+    const result = await client.verify({ solution: 'captcha-solution-from-client' });
+    if (result.ok()) {
+        console.log('Captcha verified!');
     }
-});
-```
-
-## Configuration
-
-```javascript
-const client = createClient({
-    apiKey: 'your-api-key',                 // Required
-    formField: 'private-captcha-solution',  // Field from where to read the solution
-    failedStatusCode: 403,                  // HTTP status code for failed verifications (middleware)
-    domain: 'api.privatecaptcha.com'        // Override for EU isolation or for self-hosting
-});
-```
-
-### Retry configuration
-
-```javascript
-client.verify({
-    solution: 'solution',
-    maxBackoffSeconds: 10,
-    attempts: 10
-});
-```
+    ```
+- Use Express.js middleware using `client.middleware()` method
 
 ## License
 
