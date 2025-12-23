@@ -1,6 +1,6 @@
 {
   "name": "@private-captcha/private-captcha-js",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "JS client for server-side usage of Private Captcha API",
   "type": "module",
   "main": "index.js",
