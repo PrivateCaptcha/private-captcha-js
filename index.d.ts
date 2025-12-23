@@ -102,6 +102,7 @@ export namespace VerifyCode {
     let MaintenanceModeError: number;
     let TestPropertyError: number;
     let IntegrityError: number;
+    let OrgScopeError: number;
 }
 /**
  * @typedef {Object} Configuration

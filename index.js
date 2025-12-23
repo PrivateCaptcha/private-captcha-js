@@ -133,7 +133,8 @@ export const VerifyCode = {
     VerifiedBeforeError: 8,
     MaintenanceModeError: 9,
     TestPropertyError: 10,
-    IntegrityError: 11
+    IntegrityError: 11,
+    OrgScopeError: 12
 };
 
 /**
@@ -167,6 +168,8 @@ export function verifyCodeToString(code) {
             return 'property-test';
         case VerifyCode.IntegrityError:
             return 'integrity-error';
+        case VerifyCode.OrgScopeError:
+            return 'property-org-scope';
         default:
             return 'error';
     }
