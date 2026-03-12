@@ -10,7 +10,7 @@ JavaScript client for server-side Private Captcha verification.
 
 - Install `private-captcha-js` npm package
     ```bash
-    npm install private-captcha-js
+    npm install @private-captcha/private-captcha-js
     ```
 - Instantiate the client and use `verify()` method    
     ```javascript
