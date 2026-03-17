@@ -5,6 +5,8 @@ import { createClient, VerifyCode, VerificationError, DefaultFormField, Solution
 const solutionsCount = 16;
 const solutionLength = 8;
 
+const testSitekey = 'aaaaaaaabbbbccccddddeeeeeeeeeeee';
+
 let cachedTestPuzzle = null;
 
 async function fetchTestPuzzle() {
@@ -12,7 +14,7 @@ async function fetchTestPuzzle() {
         return cachedTestPuzzle;
     }
 
-    const response = await fetch('https://api.privatecaptcha.com/puzzle?sitekey=aaaaaaaabbbbccccddddeeeeeeeeeeee', {
+    const response = await fetch('https://api.privatecaptcha.com/puzzle?sitekey=' + testSitekey, {
         headers: {
             'Origin': 'not.empty'
         }
@@ -38,7 +40,7 @@ test('Stub puzzle test', async () => {
     const solutionsStr = Buffer.from(emptySolutionsBytes).toString('base64');
     const payload = `${solutionsStr}.${puzzle}`;
 
-    const output = await client.verify({ solution: payload });
+    const output = await client.verify({ solution: payload, sitekey: testSitekey });
 
     assert.strictEqual(output.ok(), false);
     assert.strictEqual(output.success, true);
@@ -58,7 +60,7 @@ test('Verify error test', async () => {
     const payload = `${solutionsStr}.${puzzle}`;
 
     try {
-        await client.verify({ solution: payload });
+        await client.verify({ solution: payload, sitekey: testSitekey });
         assert.fail('Should have thrown an error for HTTP 400');
     } catch (error) {
         assert.ok(error instanceof HTTPError, 'Should be a HTTPError');
@@ -76,6 +78,7 @@ test('Retry backoff test', async () => {
 
     const input = {
         solution: 'asdf',
+        sitekey: testSitekey,
         maxBackoffSeconds: 1,
         attempts: 4
     };
@@ -113,7 +116,7 @@ test('Custom form field test', async () => {
     };
 
     try {
-        const output = await client.verifyRequest(reqWithCustomField);
+        const output = await client.verifyRequest(reqWithCustomField, testSitekey);
         // Should succeed with test property error
         assert.strictEqual(output.ok(), false);
         assert.strictEqual(output.success, true);
@@ -130,7 +133,7 @@ test('Custom form field test', async () => {
     };
 
     try {
-        await client.verifyRequest(reqWithoutCustomField);
+        await client.verifyRequest(reqWithoutCustomField, testSitekey);
         assert.fail('Should have thrown an error for missing custom field');
     } catch (error) {
         assert.ok(error instanceof SolutionError);

@@ -158,9 +158,10 @@ export class Client {
     /**
      * Verifies captcha solution from Express request object
      * @param {Object} req - Express request object
+     * @param {string} [sitekey=''] - Optional sitekey
      * @returns {Promise<VerifyOutput>} - Verification result
      */
-    verifyRequest(req: any): Promise<VerifyOutput>;
+    verifyRequest(req: any, sitekey?: string): Promise<VerifyOutput>;
     /**
      * Returns Express.js middleware function for automatic captcha verification
      * @returns {Function} - Express middleware function

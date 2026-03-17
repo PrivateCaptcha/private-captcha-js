@@ -393,9 +393,10 @@ export class Client {
     /**
      * Verifies captcha solution from Express request object
      * @param {Object} req - Express request object
+     * @param {string} [sitekey=''] - Optional sitekey
      * @returns {Promise<VerifyOutput>} - Verification result
      */
-    async verifyRequest(req) {
+    async verifyRequest(req, sitekey = '') {
         let solution;
 
         if (req.body && req.body[this.formField]) {
@@ -404,7 +405,7 @@ export class Client {
             throw new SolutionError(`Captcha solution not found in field '${this.formField}'. Ensure body parsing middleware is configured.`);
         }
 
-        return await this.verify({ solution });
+        return await this.verify({ solution, sitekey: sitekey });
     }
 
     /**
