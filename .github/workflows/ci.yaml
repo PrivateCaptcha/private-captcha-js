@@ -23,17 +23,23 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   tests:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      with:
+        persist-credentials: false
 
     - name: Use Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
       with:
         node-version: '22.x'
+        package-manager-cache: false
 
     - name: Install NPM dependencies
       run: npm ci
@@ -51,4 +57,4 @@ jobs:
     - name: Run tests
       run: npm test
       env:
-        PC_API_KEY: ${{ secrets.PC_API_KEY }}
+        PC_API_KEY: ${{ secrets.PC_API_KEY }} # zizmor: ignore[secrets-outside-env]
