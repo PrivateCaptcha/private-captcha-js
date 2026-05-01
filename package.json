@@ -27,6 +27,6 @@
   "homepage": "https://docs.privatecaptcha.com/docs/integrations/javascript/",
   "devDependencies": {
     "eslint": "^9.23.0",
-    "typescript": "^5.4.5"
+    "typescript": "^6.0.0"
   }
 }
