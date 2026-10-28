@@ -64,6 +64,7 @@ export class SolutionError extends Error {
  * @property {number} code - Verification result code
  * @property {string} [origin] - Origin of the request
  * @property {string} [timestamp] - Timestamp of verification
+ * @property {string} [edge_token] - Signed edge token
  * @property {string} traceID - Request ID for tracing
  */
 export class VerifyOutput {
