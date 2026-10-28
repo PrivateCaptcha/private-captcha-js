@@ -72,13 +72,15 @@ export class VerifyOutput {
      * @param {number} code - Verification result code
      * @param {string} [origin] - Origin of the request
      * @param {string} [timestamp] - Timestamp of verification
+     * @param {string} [edge_token] - Signed edge token
      * @param {string} [traceID=''] - Request ID for tracing
      */
-    constructor(success: boolean, code: number, origin?: string, timestamp?: string, traceID?: string);
+    constructor(success: boolean, code: number, origin?: string, timestamp?: string, edge_token?: string, traceID?: string);
     success: boolean;
     code: number;
     origin: string;
     timestamp: string;
+    edge_token: string;
     traceID: string;
     /**
      * Returns true if verification succeeded with no errors
