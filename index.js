@@ -59,6 +59,7 @@ export class SolutionError extends Error {
  * @property {number} code - Verification result code
  * @property {string} [origin] - Origin of the request
  * @property {string} [timestamp] - Timestamp of verification
+ * @property {string} [edge_token] - Signed edge token
  * @property {string} traceID - Request ID for tracing
  */
 export class VerifyOutput {
@@ -67,13 +68,15 @@ export class VerifyOutput {
      * @param {number} code - Verification result code
      * @param {string} [origin] - Origin of the request
      * @param {string} [timestamp] - Timestamp of verification
+     * @param {string} [edge_token] - Signed edge token
      * @param {string} [traceID=''] - Request ID for tracing
      */
-    constructor(success, code, origin, timestamp, traceID = '') {
+    constructor(success, code, origin, timestamp, edge_token, traceID = '') {
         this.success = success;
         this.code = code;
         this.origin = origin;
         this.timestamp = timestamp;
+        this.edge_token = edge_token;
         this.traceID = traceID;
     }
 
@@ -105,7 +108,7 @@ export function getStatusCode(error) {
 export const GlobalDomain = 'api.privatecaptcha.com';
 export const EUDomain = 'api.eu.privatecaptcha.com';
 export const DefaultFormField = 'private-captcha-solution';
-const version = '0.0.11'
+const version = '0.0.13'
 const userAgent = 'private-captcha-js/' + version;
 
 const retriableStatusCodes = [
@@ -134,7 +137,8 @@ export const VerifyCode = {
     MaintenanceModeError: 9,
     TestPropertyError: 10,
     IntegrityError: 11,
-    OrgScopeError: 12
+    OrgScopeError: 12,
+    SolutionTimingError: 13,
 };
 
 /**
@@ -170,6 +174,8 @@ export function verifyCodeToString(code) {
             return 'integrity-error';
         case VerifyCode.OrgScopeError:
             return 'property-org-scope';
+        case VerifyCode.SolutionTimingError:
+            return 'solution-timing';
         default:
             return 'error';
     }
@@ -295,6 +301,7 @@ export class Client {
                 data.code,
                 data.origin,
                 data.timestamp,
+                data.edge_token || '',
                 traceID
             );
         } catch (error) {

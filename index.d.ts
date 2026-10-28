@@ -103,6 +103,7 @@ export namespace VerifyCode {
     let TestPropertyError: number;
     let IntegrityError: number;
     let OrgScopeError: number;
+    let SolutionTimingError: number;
 }
 /**
  * @typedef {Object} Configuration
